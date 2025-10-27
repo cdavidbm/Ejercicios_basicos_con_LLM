@@ -1,51 +1,37 @@
 # pip install google-generativeai python-dotenv requests
 
 # ============================================
-# EJERCICIO 0: PRIMERA LLAMADA A UN LLM
-# Objetivo: Entender cómo Python se comunica con un modelo de IA
+# CONFIGURACIÓN INICIAL
 # ============================================
 
-# Paso 1: Importar lo necesario
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
-import requests # Importante para el ejemplo 6
+import requests
 
-# Paso 2: Configurar la conexión
-# Carga las variables del archivo .env
 load_dotenv()
 API_KEY = os.getenv('GEMINI_API_KEY')
 
-# Es una buena práctica verificar que la API Key se haya cargado correctamente
-if not API_KEY:
-    raise ValueError("No se encontró la GEMINI_API_KEY. Asegúrate de que tu archivo .env está configurado correctamente.")
-
 genai.configure(api_key=API_KEY)
-
-# Paso 3: Crear el modelo
 model = genai.GenerativeModel('models/gemini-flash-latest')
 
 # ============================================
 # EJEMPLO 1: La llamada más simple posible
 # ============================================
-print("=" * 60, "\n EJEMPLO 1: PREGUNTA SIMPLE \n ", "=" * 60 + "\n")
 
-pregunta = "¿Qué es la fotosíntesis?. Dame una respuesta concreta y breve."
+variable = "fotosintesis"
+pregunta = "¿Qué es la fotosíntesis?.  Dame una respuesta concreta y breve."
 respuesta = model.generate_content(pregunta)
 
-print(f"PREGUNTA: {pregunta}\n")
-print(f"RESPUESTA DEL LLM:\n{respuesta.text}\n")
+print(respuesta.text)
 
 # ============================================
-# EJEMPLO 2: Usando variables de Python
+# EJEMPLO 2: Usando variables en el prompt
 # ============================================
-print("=" * 60, "\n EJEMPLO 2: MEZCLANDO PYTHON CON LLM \n ", "=" * 60 + "\n")
 
-# variables
 especie = "Jaguar"
 region = "Amazonía colombiana"
 
-# Construir prompt con nuestras variables
 prompt = f'''
 Háblame sobre el {especie} en la {region}.
 Incluye:
@@ -57,15 +43,11 @@ Responde en máximo 4 líneas.
 '''
 
 respuesta = model.generate_content(prompt)
-
-print(f"🐆 Especie: {especie}")
-print(f"📍 Región: {region}\n")
-print(f"🤖 RESPUESTA DEL LLM:\n{respuesta.text}\n")
+print(f"RESPUESTA DEL LLM:\n{respuesta.text}\n")
 
 # ============================================
-# EJEMPLO 3: Procesando la respuesta en Python
+# EJEMPLO 3: Procesando respuesta recibida
 # ============================================
-print("=" * 60, "\n EJEMPLO 3: PROCESANDO RESPUESTA DEL LLM \n ", "=" * 60 + "\n")
 
 prompt_lista = '''
 Dame 3 consejos para reducir el uso de plástico.
@@ -76,73 +58,41 @@ Responde en formato:
 '''
 
 respuesta = model.generate_content(prompt_lista)
-
-print("🤖 RESPUESTA DEL LLM:")
-print(respuesta.text)
-print()
-
-# Ahora Python procesa esa respuesta
 texto_respuesta = respuesta.text
-# Se añade un control de errores por si la respuesta viene vacía
-if texto_respuesta:
-    numero_de_lineas = len(texto_respuesta.split('\n'))
-else:
-    numero_de_lineas = 0
+numero_de_lineas = len(texto_respuesta.split('\n'))
 numero_de_caracteres = len(texto_respuesta)
 
-
-print("📊 ANÁLISIS CON PYTHON:")
+print("ANÁLISIS:")
 print(f"   Líneas en la respuesta: {numero_de_lineas}")
 print(f"   Caracteres totales: {numero_de_caracteres}")
-print(f"   ¿Menciona 'plástico'?: {'Sí ✅' if 'plástico' in texto_respuesta.lower() else 'No ❌'}")
-print()
+print(f"   ¿Menciona 'plástico'?: {'Sí' if 'plástico' in texto_respuesta.lower() else 'No'}")
 
 # ============================================
 # EJEMPLO 4: Función reutilizable
 # ============================================
-print("=" * 60, "\n EJEMPLO 4: FUNCIÓN REUTILIZABLE \n ", "=" * 60 + "\n")
 
 def consultar_llm(pregunta):
     """Envía una pregunta al LLM y devuelve la respuesta en texto."""
-    try:
-        respuesta = model.generate_content(pregunta)
-        return respuesta.text
-    except Exception as e:
-        return f"Error al consultar el modelo: {e}"
-
-
-# Ahora podemos usarla fácilmente
-print("Usando nuestra función personalizada:\n")
-
-# Por practicidad escribímos aqui la pregunta directamente en la variable
-# Pero podriamos usar un input() o cualquier otra forma para recibir
-# interacción del usuario
+    respuesta = model.generate_content(pregunta)
+    return respuesta.text
 
 pregunta1 = "¿Qué causa el cambio climático en una frase?"
-print(f"❓ {pregunta1}")
-print(f"💬 {consultar_llm(pregunta1)}\n")
+print(consultar_llm(pregunta1))
 
 pregunta2 = "Dame un dato curioso sobre las abejas"
-print(f"❓ {pregunta2}")
-print(f"💬 {consultar_llm(pregunta2)}\n")
+print(consultar_llm(pregunta2))
 
 # ============================================
 # EJEMPLO 5: Combinando lógica Python + LLM
 # ============================================
-print("=" * 60, "\n EJEMPLO 5: PYTHON DECIDE, LLM RESPONDE \n ", "=" * 60 + "\n")
 
-# Datos que procesa Python
 temperaturas_ciudad = [22, 25, 28, 31, 29, 26, 24]
 promedio = sum(temperaturas_ciudad) / len(temperaturas_ciudad)
 
-print(f"🌡️ Temperaturas de la semana: {temperaturas_ciudad}")
-print(f"📊 Promedio calculado por Python: {promedio:.1f}°C\n")
+print(f"Temperaturas de la semana: {temperaturas_ciudad}\n")
+print(f"Promedio calculado por Python: {promedio:.1f}°C\n")
 
-# Python decide si pedir consejo al LLM
 if promedio > 26:
-    print("⚠️ Python detectó: Temperatura alta")
-    print("💡 Consultando al LLM sobre qué hacer...\n")
-
     prompt_calor = f"""
     La temperatura promedio esta semana fue {promedio:.1f}°C.
     Enumera 2 consejos breves para cuidar el medio ambiente en días calurosos.
@@ -150,15 +100,11 @@ if promedio > 26:
     """
 
     consejos = consultar_llm(prompt_calor) # Función creada en el ejemplo 4
-    print(f"🤖 CONSEJOS DEL LLM:\n{consejos}")
-else:
-    print("✅ Python detectó: Temperatura normal, no se requiere acción")
+    print(f"CONSEJOS DEL LLM:\n{consejos}")
 
 # ============================================
 # EJEMPLO 6: Creando una "herramienta"
 # ============================================
-
-print("=" * 60, "\n EJEMPLO 6: USANDO HERRAMIENTAS \n ", "=" * 60 + "\n")
 
 def obtener_clima(ciudad):
     """Obtiene el clima de una ciudad usando la API de wttr.in."""
@@ -185,7 +131,6 @@ def obtener_clima(ciudad):
     except (KeyError, IndexError) as e:
         print(f"Error al procesar los datos del clima. La ciudad '{ciudad}' podría no ser válida. Error: {e}")
         return None
-
 
 # Pedimos al usuario una ciudad, con "Bogota" como valor por defecto
 ciudad_input = input("Ingresa una ciudad (o presiona Enter para usar 'Bogota'): ")
