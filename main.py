@@ -19,7 +19,6 @@ model = genai.GenerativeModel('models/gemini-flash-latest')
 # EJEMPLO 1: La llamada más simple posible
 # ============================================
 
-variable = "fotosintesis"
 pregunta = "¿Qué es la fotosíntesis?.  Dame una respuesta concreta y breve."
 respuesta = model.generate_content(pregunta)
 
